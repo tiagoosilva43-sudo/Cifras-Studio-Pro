@@ -474,7 +474,6 @@ function editarParte(index) {
     dom.editIndex.value = index;
     dom.btnSalvar.innerText = "Atualizar Seção";
     dom.btnSalvar.style.background = "var(--cor-alerta)"; 
-    if (window.innerWidth <= 768) toggleListaMobile();
 }
 
 function excluirParte(index) {
@@ -735,7 +734,6 @@ function gerarDocumento() {
         const p = f.getAttribute('data-page');
         f.innerText = `Página ${p} de ${pageNum}`;
     });
-	ajustarZoomMobile();
 }
 
 function imprimirA4() {
@@ -755,34 +753,15 @@ function imprimirA4() {
     const doc = iframe.contentWindow.document;
     doc.open();
     // Injeta a estrutura exata do estilo de impressão para o iframe nativo
-doc.write(`
+    doc.write(`
         <!DOCTYPE html>
         <html>
         <head>
             <title>Cifra A4</title>
-            <meta name="viewport" content="width=794, initial-scale=1.0">
             <style>
                 @page { size: A4; margin: 0; }
                 * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
-                body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; background: white; color: black; width: 210mm; }
-
-                .pagina-a4 {
-                    width: 210mm !important; height: 297mm !important; padding: 6mm !important; margin: 0 !important; box-shadow: none !important;
-                    display: block !important; position: relative; overflow: hidden;
-                    page-break-after: always; break-after: page;
-                }
-                .pagina-a4:last-child { page-break-after: auto; break-after: auto; }
-
-                /* 2. GARANTIA ABSOLUTA DE 2 COLUNAS NA IMPRESSÃO */
-                .pagina-a4-conteudo { 
-                    column-count: 2 !important; 
-                    -webkit-column-count: 2 !important;
-                    -moz-column-count: 2 !important;
-                    column-gap: 30px !important; 
-                    column-fill: auto !important; 
-                    width: 100% !important; 
-                    display: block !important;
-                }
+                body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; background: white; color: black; }
 
                 .pagina-a4 {
                     width: 210mm; height: 297mm; padding: 6mm; margin: 0; box-shadow: none;
@@ -857,45 +836,3 @@ function toggleDarkMode() {
     const isDark = document.body.classList.contains('dark');
     localStorage.setItem('temaCifrasStudio', isDark ? 'escuro' : 'claro');
 }
-
-// ================= GESTÃO MOBILE: GAVETA LATERAL E ZOOM A4 =================
-
-// Abre/fecha a gaveta lateral direita das secções no mobile
-function toggleListaMobile() {
-    const lista = document.getElementById('listaPartes');
-    if (lista) {
-        lista.classList.toggle('aberto');
-    }
-}
-
-// Encolhe a visualização da folha A4 para caber perfeitamente no ecrã do telemóvel
-function ajustarZoomMobile() {
-    const container = document.getElementById('documento-container');
-    if (!container) return;
-
-    if (window.innerWidth <= 768) {
-        // Mede o espaço disponível e calcula o rácio em relação à largura real de uma folha A4 (794px)
-        const larguraDisponivel = container.parentElement.clientWidth - 20;
-        const larguraA4 = 794; 
-        const fatorZoom = larguraDisponivel / larguraA4;
-
-        document.querySelectorAll('.pagina-a4').forEach(pagina => {
-            pagina.style.transform = `scale(${fatorZoom})`;
-            pagina.style.transformOrigin = 'top center';
-            
-            // Puxa a página seguinte para cima, compensando a altura reduzida pelo zoom
-            const alturaA4 = 1122; 
-            const alturaReduzida = alturaA4 * fatorZoom;
-            pagina.style.marginBottom = `${-(alturaA4 - alturaReduzida) + 15}px`;
-        });
-    } else {
-        // Restaura a visualização normal no computador
-        document.querySelectorAll('.pagina-a4').forEach(pagina => {
-            pagina.style.transform = 'none';
-            pagina.style.marginBottom = '30px';
-        });
-    }
-}
-
-// Ouve redimensionamentos do ecrã para recalcular o zoom
-window.addEventListener('resize', ajustarZoomMobile);
