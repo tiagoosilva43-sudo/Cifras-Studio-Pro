@@ -473,7 +473,8 @@ function editarParte(index) {
     dom.corParte.value = p.cor;
     dom.editIndex.value = index;
     dom.btnSalvar.innerText = "Atualizar Seção";
-    dom.btnSalvar.style.background = "var(--cor-alerta)"; 
+    dom.btnSalvar.style.background = "var(--cor-alerta)";
+    if (window.innerWidth <= 768) toggleListaMobile(); 
 }
 
 function excluirParte(index) {
@@ -736,6 +737,9 @@ function gerarDocumento() {
     });
 }
 
+    ajustarZoomMobile();
+}
+
 function imprimirA4() {
     const conteudoFormatado = dom.docContainer.innerHTML;
 
@@ -758,10 +762,28 @@ function imprimirA4() {
         <html>
         <head>
             <title>Cifra A4</title>
+            <meta name="viewport" content="width=794, initial-scale=1.0">
             <style>
                 @page { size: A4; margin: 0; }
                 * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
-                body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; background: white; color: black; }
+                body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; background: white; color: black; width: 210mm; }
+
+                .pagina-a4 {
+                    width: 210mm !important; height: 297mm !important; padding: 6mm !important; margin: 0 !important; box-shadow: none !important;
+                    display: block !important; position: relative; overflow: hidden;
+                    page-break-after: always; break-after: page;
+                }
+                .pagina-a4:last-child { page-break-after: auto; break-after: auto; }
+
+                .pagina-a4-conteudo { 
+                    column-count: 2 !important; 
+                    -webkit-column-count: 2 !important;
+                    -moz-column-count: 2 !important;
+                    column-gap: 30px !important; 
+                    column-fill: auto !important; 
+                    width: 100% !important; 
+                    display: block !important;
+                }
 
                 .pagina-a4 {
                     width: 210mm; height: 297mm; padding: 6mm; margin: 0; box-shadow: none;
@@ -836,3 +858,36 @@ function toggleDarkMode() {
     const isDark = document.body.classList.contains('dark');
     localStorage.setItem('temaCifrasStudio', isDark ? 'escuro' : 'claro');
 }
+
+// ================= GESTÃO MOBILE: GAVETA LATERAL E ZOOM A4 =================
+function toggleListaMobile() {
+    const lista = document.getElementById('listaPartes');
+    if (lista) lista.classList.toggle('aberto');
+}
+
+function ajustarZoomMobile() {
+    const container = document.getElementById('documento-container');
+    if (!container) return;
+
+    if (window.innerWidth <= 768) {
+        const larguraDisponivel = container.parentElement.clientWidth - 20;
+        const larguraA4 = 794; 
+        const fatorZoom = larguraDisponivel / larguraA4;
+
+        document.querySelectorAll('.pagina-a4').forEach(pagina => {
+            pagina.style.transform = `scale(${fatorZoom})`;
+            pagina.style.transformOrigin = 'top center';
+            
+            const alturaA4 = 1122; 
+            const alturaReduzida = alturaA4 * fatorZoom;
+            pagina.style.marginBottom = `${-(alturaA4 - alturaReduzida) + 15}px`;
+        });
+    } else {
+        document.querySelectorAll('.pagina-a4').forEach(pagina => {
+            pagina.style.transform = 'none';
+            pagina.style.marginBottom = '30px';
+        });
+    }
+}
+
+window.addEventListener('resize', ajustarZoomMobile);
