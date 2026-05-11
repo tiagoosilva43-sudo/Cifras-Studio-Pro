@@ -1,3 +1,9 @@
+// ============================================================
+// Cifras Studio — script.js
+// Versão: 2.0
+// Data:   2026-05-11
+// ============================================================
+
 "use strict";
 
 // ================= VARIÁVEIS GERAIS DE ESTADO =================
@@ -53,10 +59,18 @@ document.addEventListener("DOMContentLoaded", function() {
         aplicarTema(e.matches);
     });
 
+    // 4. Ajusta o texto do botão de impressão conforme o dispositivo real (userAgent)
+    if (esMobile()) {
+        document.querySelectorAll('.texto-imprimir-desktop').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.texto-imprimir-mobile').forEach(el => el.style.display = 'inline');
+    }
+
     // 4. Linha do Tempo (Comentários e Dinâmicas)
     new Sortable(dom.linhaTempo, {
         handle: '.drag-handle', 
-        animation: 200,         
+        animation: 200,
+        delay: 200,
+        delayOnTouchOnly: true,
         ghostClass: 'sortable-ghost',
         onEnd: function (evt) {
             const itemMovido = mapaAtual.splice(evt.oldIndex, 1)[0];
@@ -69,6 +83,8 @@ document.addEventListener("DOMContentLoaded", function() {
     new Sortable(dom.previewMapa, {
         filter: '.nao-arrastavel, .btn-excluir-preview',
         animation: 200,
+        delay: 200,
+        delayOnTouchOnly: true,
         ghostClass: 'sortable-ghost',
         onEnd: function (evt) {
             const nodes = Array.from(dom.previewMapa.children);
@@ -99,7 +115,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // ================= NAVEGAÇÃO E CONTROLES GERAIS =================
 function toggleMenu() { 
-    dom.sidebar.classList.toggle('fechado'); 
+    dom.sidebar.classList.toggle('fechado');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.toggle('ativo', !dom.sidebar.classList.contains('fechado'));
 }
 
 function mudarPasso(n) {
@@ -134,6 +152,8 @@ function mudarPasso(n) {
     document.getElementById('link-passo' + n).classList.add('ativo');
 
     dom.sidebar.classList.add('fechado');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.remove('ativo');
 
     if(n === 2) atualizarUI();
     if(n === 3) renderizarTimeline(); 
@@ -677,19 +697,19 @@ function criarPaginaA4(isFirst, pageNum) {
 }
 
 function gerarDocumento() {
-    dom.docContainer.innerHTML = ''; 
-    
+    dom.docContainer.innerHTML = '';
+
     let baloes = [];
     mapaAtual.forEach(inst => {
-        if (inst.ocultar) return; 
+        if (inst.ocultar) return;
         if (baloes.length > 0 && baloes[baloes.length-1].id === inst.id && inst.mesclar) {
             baloes[baloes.length-1].count++;
             if (inst.com) baloes[baloes.length-1].coms.push(inst.com);
-        } else { 
-            baloes.push({ ...inst, count: 1, coms: inst.com ? [inst.com] : [] }); 
+        } else {
+            baloes.push({ ...inst, count: 1, coms: inst.com ? [inst.com] : [] });
         }
     });
-    
+
     let pageNum = 1;
     let currentPage = criarPaginaA4(true, pageNum);
     let contentEl = currentPage.querySelector('.pagina-a4-conteudo');
@@ -702,7 +722,7 @@ function gerarDocumento() {
         const classSoCifra = textoSemAcordes.length > 0 ? '' : 'so-cifra';
 
         const divBalao = document.createElement('div');
-        divBalao.className = `secao`;
+        divBalao.className = 'secao';
         divBalao.innerHTML = `
             <div class="cabecalho-balao">
                 <div class="titulo-secao">
@@ -715,12 +735,10 @@ function gerarDocumento() {
                 ${compilarCifra(b.c)}
             </div>
         `;
-        
+
         contentEl.appendChild(divBalao);
 
-        // Verifica transbordo dinâmico para garantir que tudo caiba na folha
         const excedeuLimite = contentEl.scrollWidth > contentEl.clientWidth + 5;
-        
         if (excedeuLimite && contentEl.children.length > 1) {
             contentEl.removeChild(divBalao);
             pageNum++;
@@ -731,94 +749,184 @@ function gerarDocumento() {
     });
 
     document.querySelectorAll('.rodape-pagina').forEach(f => {
-        const p = f.getAttribute('data-page');
-        f.innerText = `Página ${p} de ${pageNum}`;
+        f.innerText = `Página ${f.getAttribute('data-page')} de ${pageNum}`;
+    });
+
+    // Aplica escala nas páginas A4 para caber na largura do dispositivo
+    escalarPaginasA4();
+}
+
+function escalarPaginasA4() {
+    const area = dom.docContainer.parentElement; // .folha-preview-area
+    if (!area) return;
+
+    // Largura disponível descontando o padding da área (30px cada lado no desktop, 8px no mobile)
+    const paddingH = window.innerWidth <= 768 ? 16 : 60;
+    const larguraDisponivel = area.clientWidth - paddingH;
+
+    // Largura real da página A4 em pixels (210mm a 96dpi ≈ 794px)
+    const larguraA4px = 794;
+
+    const escala = Math.min(1, larguraDisponivel / larguraA4px);
+
+    document.querySelectorAll('.pagina-a4').forEach(pagina => {
+        if (escala < 1) {
+            pagina.style.transform = `scale(${escala})`;
+            pagina.style.transformOrigin = 'top center';
+            // Ajusta a altura do wrapper para não deixar espaço em branco
+            pagina.style.marginBottom = `${-(pagina.offsetHeight * (1 - escala))}px`;
+        } else {
+            pagina.style.transform = '';
+            pagina.style.marginBottom = '';
+        }
     });
 }
 
+function esMobile() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function gerarCssImpressao() {
+    return `
+        @page { size: A4 portrait; margin: 0; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; background: white; color: black; }
+
+        .pagina-a4 {
+            width: 210mm !important; height: 297mm !important; padding: 6mm; margin: 0; box-shadow: none;
+            display: flex !important; flex-direction: column; position: relative; overflow: hidden;
+            page-break-after: always; break-after: page; transform: none !important;
+        }
+        .pagina-a4:last-child { page-break-after: auto; break-after: auto; }
+
+        .pagina-a4-conteudo {
+            -webkit-column-count: 2 !important; column-count: 2 !important;
+            -webkit-column-gap: 30px !important; column-gap: 30px !important;
+            -webkit-column-fill: auto !important; column-fill: auto !important;
+            flex: 1; width: 100%; overflow: hidden;
+        }
+
+        .rodape-pagina { text-align: right; font-size: 11px; color: #94a3b8; padding-top: 10px; margin-top: auto; flex-shrink: 0; font-weight: 600; }
+        .cabecalho-musica { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #eee; padding-bottom: 10px; margin: 15px 20px 20px 20px; }
+        .titulo-musica { font-size: 24px; font-weight: 800; margin: 0; }
+        .meta-dados { display: flex; gap: 20px; font-size: 12px; color: #666; font-weight: bold; }
+        .meta-dados span { color: #000; font-weight: normal; margin-left: 4px; }
+        .mapa-impresso { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 15px 20px 20px; }
+        .bolinha-wrapper { position: relative; display: inline-block; }
+        .bolinha-impressa { width: 22px; height: 22px; border-radius: 50%; border: 2px solid; display: flex; justify-content: center; align-items: center; font-weight: bold; background: white; color: #000 !important; font-size: 10px; z-index: 1; position: relative; }
+        .expoente-repeticao { position: absolute; top: -5px; right: -5px; font-size: 11px; font-weight: 900; color: #000; z-index: 2; background: white; border-radius: 50%; padding: 0 2px; }
+
+        .secao { position: relative; display: inline-block; width: 100%; border: 2px solid #e0e0e0; border-radius: 12px; padding: 16px 15px 8px 15px; margin-top: 16px; margin-bottom: 8px; background: white; break-inside: avoid; page-break-inside: avoid; }
+        .cabecalho-balao { display: block; width: 100%; }
+        .linha-musica { display: flex !important; flex-wrap: wrap; margin-bottom: 8px; break-inside: avoid; page-break-inside: avoid; }
+        .titulo-secao { position: absolute; top: -14px; left: 12px; font-weight: bold; background: white; padding: 0 10px 0 5px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .mini-bolinha { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid; display: flex; justify-content: center; align-items: center; font-weight: 700; background: white; color: #000 !important; font-size: 9px; }
+        .comentario-container { display: block; width: 100%; padding-top: 0; text-align: right; margin-bottom: 2px; }
+        .comentario-pdf { color: #666; font-size: 13px; white-space: pre-wrap; word-break: break-word; line-height: 1.3; text-align: right; }
+        .secao-conteudo { padding-top: 5px; padding-bottom: 6px; display: flex !important; flex-direction: column; }
+        .bloco-acorde { display: flex !important; flex-direction: column; justify-content: flex-end; }
+        .acorde { font-weight: bold; font-size: 13px; color: #000; line-height: 1; margin-bottom: 2px; margin-right: 5px; }
+        .letra { font-size: 13px; color: #333; white-space: pre; line-height: 1.1; }
+        .so-cifra .letra { display: none; }
+        .so-cifra .acorde { margin-right: 6px; }
+        .so-cifra .bloco-acorde { margin-right: 0px; }
+        .secao-conteudo.so-cifra { padding-top: 6px; padding-bottom: 0px; display: flex !important; flex-direction: column; }
+
+        @media print {
+            body { margin: 0; padding: 0; }
+            .pagina-a4 { width: 210mm !important; height: 297mm !important; transform: none !important; }
+            .pagina-a4-conteudo { -webkit-column-count: 2 !important; column-count: 2 !important; -webkit-column-gap: 30px !important; column-gap: 30px !important; }
+        }
+    `;
+}
+
+async function salvarPdfMobile() {
+    const { jsPDF } = window.jspdf;
+    const paginas = dom.docContainer.querySelectorAll('.pagina-a4');
+    if (!paginas.length) { mostrarToast('Nenhum documento gerado.'); return; }
+
+    mostrarToast('Gerando PDF...');
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const larguraMM = 210;
+    const alturaMM = 297;
+
+    for (let i = 0; i < paginas.length; i++) {
+        const pagina = paginas[i];
+
+        // Remove escala temporariamente para capturar em tamanho real
+        const transformOriginal = pagina.style.transform;
+        const marginOriginal = pagina.style.marginBottom;
+        pagina.style.transform = 'none';
+        pagina.style.marginBottom = '0';
+
+        const canvas = await html2canvas(pagina, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            width: pagina.offsetWidth,
+            height: pagina.offsetHeight,
+            windowWidth: pagina.offsetWidth,
+            windowHeight: pagina.offsetHeight
+        });
+
+        // Restaura escala
+        pagina.style.transform = transformOriginal;
+        pagina.style.marginBottom = marginOriginal;
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+        if (i > 0) pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, 0, larguraMM, alturaMM);
+    }
+
+    const nomeArquivo = (dom.inputTitulo.value || 'cifra') + '.pdf';
+    pdf.save(nomeArquivo);
+}
+
 function imprimirA4() {
-    const conteudoFormatado = dom.docContainer.innerHTML;
+    // Mobile: salva como PDF via jsPDF + html2canvas
+    if (esMobile()) {
+        salvarPdfMobile();
+        return;
+    }
+
+    // Desktop: impressão via iframe
+    const clone = dom.docContainer.cloneNode(true);
+    clone.querySelectorAll('.pagina-a4').forEach(p => {
+        p.style.transform = '';
+        p.style.transformOrigin = '';
+        p.style.marginBottom = '';
+    });
+    const conteudoFormatado = clone.innerHTML;
+
+    const htmlCompleto = `<!DOCTYPE html>
+<html>
+<head>
+    <title>Cifra A4</title>
+    <style>${gerarCssImpressao()}</style>
+</head>
+<body>${conteudoFormatado}</body>
+</html>`;
 
     let iframe = document.getElementById('iframe-impressao');
     if (!iframe) {
         iframe = document.createElement('iframe');
         iframe.id = 'iframe-impressao';
-        iframe.style.position = 'absolute';
-        iframe.style.width = '0px'; 
-        iframe.style.height = '0px'; 
-        iframe.style.border = 'none';
+        iframe.style.cssText = 'position:absolute;width:0;height:0;border:none;left:-9999px;top:-9999px;';
         document.body.appendChild(iframe);
     }
 
     const doc = iframe.contentWindow.document;
     doc.open();
-    // Injeta a estrutura exata do estilo de impressão para o iframe nativo
-    doc.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Cifra A4</title>
-            <style>
-                @page { size: A4; margin: 0; }
-                * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
-                body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; background: white; color: black; }
-
-                .pagina-a4 {
-                    width: 210mm; height: 297mm; padding: 6mm; margin: 0; box-shadow: none;
-                    display: flex; flex-direction: column; position: relative; overflow: hidden;
-                    page-break-after: always; break-after: page;
-                }
-                .pagina-a4:last-child { page-break-after: auto; break-after: auto; }
-
-                .pagina-a4-conteudo { column-count: 2; column-gap: 30px; column-fill: auto; flex: 1; width: 100%; overflow: hidden; }
-
-                .rodape-pagina { text-align: right; font-size: 11px; color: #94a3b8; padding-top: 10px; margin-top: auto; flex-shrink: 0; font-weight: 600; }
-
-                .cabecalho-musica { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #eee; padding-bottom: 10px; margin: 15px 20px 20px 20px; }
-                .titulo-musica { font-size: 24px; font-weight: 800; margin: 0; }
-                .meta-dados { display: flex; gap: 20px; font-size: 12px; color: #666; font-weight: bold; }
-                .meta-dados span { color: #000; font-weight: normal; margin-left: 4px; }
-                .mapa-impresso { display: flex; gap: 12px; flex-wrap: wrap; margin: 0 15px 20px 20px; }
-                .bolinha-wrapper { position: relative; display: inline-block; }
-                .bolinha-impressa { width: 22px; height: 22px; border-radius: 50%; border: 2px solid; display: flex; justify-content: center; align-items: center; font-weight: bold; background: white; color: #000 !important; font-size: 10px; z-index: 1; position: relative; }
-                .expoente-repeticao { position: absolute; top: -5px; right: -5px; font-size: 11px; font-weight: 900; color: #000; z-index: 2; background: white; border-radius: 50%; padding: 0 2px; }
-
-                .secao { 
-                    position: relative; display: inline-block; width: 100%; border: 2px solid #e0e0e0; 
-                    border-radius: 12px; padding: 16px 15px 8px 15px; margin-top: 16px; margin-bottom: 8px; 
-                    background: white; break-inside: avoid; page-break-inside: avoid;
-                }
-                
-                .cabecalho-balao { display: block; width: 100%; }
-                .linha-musica { display: flex; flex-wrap: wrap; margin-bottom: 8px; break-inside: avoid; page-break-inside: avoid; } 
-
-                .titulo-secao { position: absolute; top: -14px; left: 12px; font-weight: bold; background: white; padding: 0 10px 0 5px; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
-                .mini-bolinha { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid; display: flex; justify-content: center; align-items: center; font-weight: 700; background: white; color: #000 !important; font-size: 9px; }
-                
-                .comentario-container { display: block; width: 100%; padding-top: 0; text-align: right; margin-bottom: 2px; }
-                .comentario-pdf { color: #666; font-size: 13px; font-style: normal; white-space: pre-wrap; word-break: break-word; line-height: 1.3; text-align: right; }
-
-                .secao-conteudo { padding-top: 5px; padding-bottom: 6px; display: flex; flex-direction: column; }
-                .bloco-acorde { display: flex; flex-direction: column; justify-content: flex-end; }
-                .acorde { font-weight: bold; font-size: 13px; color: #000; line-height: 1; margin-bottom: 2px; margin-right: 5px; }
-                .letra { font-size: 13px; color: #333; white-space: pre; line-height: 1.1; }
-                .so-cifra .letra { display: none; }
-                .so-cifra .acorde { margin-right: 6px; }
-                .so-cifra .bloco-acorde { margin-right: 0px; }
-                .secao-conteudo.so-cifra { padding-top: 6px; padding-bottom: 0px; display: flex; flex-direction: column; }
-            </style>
-        </head>
-        <body>
-            ${conteudoFormatado}
-        </body>
-        </html>
-    `);
+    doc.write(htmlCompleto);
     doc.close();
 
     setTimeout(() => {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
-    }, 250);
+    }, 300);
 }
 // ================= SISTEMA DE TOAST E TEMA ESCURO =================
 function mostrarToast(mensagem) {
@@ -836,3 +944,44 @@ function toggleDarkMode() {
     const isDark = document.body.classList.contains('dark');
     localStorage.setItem('temaCifrasStudio', isDark ? 'escuro' : 'claro');
 }
+
+// ================= SWIPE PARA ABRIR/FECHAR SIDEBAR (MOBILE) =================
+(function() {
+    const SWIPE_ZONE = 30;      // px da borda esquerda que ativa o gesto de abrir
+    const SWIPE_MIN  = 50;      // deslocamento mínimo em px para considerar swipe
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let swipeAtivo  = false;
+
+    document.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        // Só ativa o gesto de abrir se o toque começar na borda esquerda
+        swipeAtivo = touchStartX <= SWIPE_ZONE;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function(e) {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+
+        // Ignora se o movimento foi mais vertical do que horizontal
+        if (Math.abs(dy) > Math.abs(dx)) return;
+
+        const sidebar  = dom.sidebar;
+        const overlay  = document.getElementById('sidebar-overlay');
+        const fechado  = sidebar.classList.contains('fechado');
+
+        if (swipeAtivo && dx > SWIPE_MIN && fechado) {
+            // Swipe direita na borda → abre
+            sidebar.classList.remove('fechado');
+            if (overlay) overlay.classList.add('ativo');
+        } else if (!fechado && dx < -SWIPE_MIN) {
+            // Swipe esquerda em qualquer lugar → fecha
+            sidebar.classList.add('fechado');
+            if (overlay) overlay.classList.remove('ativo');
+        }
+
+        swipeAtivo = false;
+    }, { passive: true });
+})();

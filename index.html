@@ -1,16 +1,24 @@
 <!DOCTYPE html>
+<!-- ============================================================
+     Cifras Studio
+     Versão: 2.0
+     Data:   2026-05-11
+     ============================================================ -->
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cifras Pro - Studio</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <div id="sidebar-overlay" class="sidebar-overlay no-print" onclick="toggleMenu()"></div>
     <nav id="sidebar" class="sidebar fechado no-print">
 <div class="sidebar-header">
             <h3>Cifras Studio</h3>
@@ -133,7 +141,10 @@
                         <button onclick="iniciarNovaMusica()" class="btn-nav btn-perigo">🗑️ Novo</button>
                         <button onclick="salvarProjeto()" class="btn-nav btn-salvar">💾 Salvar Projeto</button>
                         <button onclick="mudarPasso(3)" class="btn-nav btn-voltar">Editar Ordem</button>
-                        <button onclick="imprimirA4()" class="btn-nav btn-imprimir">🖨️ Imprimir PDF</button>
+                        <button onclick="imprimirA4()" class="btn-nav btn-imprimir">
+                            <span class="texto-imprimir-desktop">🖨️ Imprimir PDF</span>
+                            <span class="texto-imprimir-mobile">⬇️ Salvar PDF</span>
+                        </button>
                     </div>
                 </div>
                 
