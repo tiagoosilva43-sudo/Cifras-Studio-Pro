@@ -1396,3 +1396,148 @@ body.dark .pagina-a4 .expoente-repeticao {
         justify-content: space-between;
     }
 }
+
+/* Botão visível apenas em dispositivos mobile */
+.mobile-only {
+    display: none;
+}
+
+/* ================= RESPONSIVIDADE INTEGRAL (MOBILE / TABLET) ================= */
+@media (max-width: 768px) {
+    .mobile-only {
+        display: inline-flex;
+    }
+
+    /* 1. Zoom geral otimizado e espaço vazio no topo para o botão do menu */
+    body {
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+    .main-wrapper {
+        padding: 10px;
+        padding-top: 65px !important; /* Deixa um espaço limpo no topo */
+        align-items: flex-start;
+    }
+    .btn-menu-flutuante {
+        top: 12px;
+        left: 12px;
+        z-index: 3000;
+    }
+    .container {
+        max-height: none !important;
+        padding: 20px 15px !important;
+        margin-top: 0;
+    }
+
+    /* 2. Botões do Passo 1 empilhados e proporcionais */
+    .navegacao-passos {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    .navegacao-passos button {
+        width: 100%;
+        margin: 0 !important;
+        padding: 12px;
+        font-size: 14px;
+        justify-content: center;
+    }
+
+    /* 3. Passo 2: Cabeçalho limpo, Paleta centralizada e Gaveta Deslizante à direita */
+    .header-secao {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .botoes-header-mobile {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+    }
+    .botoes-header-mobile button {
+        flex: 1;
+        padding: 10px;
+        font-size: 13px;
+        justify-content: center;
+    }
+
+    .painel-grid {
+        flex-direction: column;
+        padding: 12px !important;
+        gap: 15px;
+    }
+    .formulario-card {
+        padding-right: 0;
+    }
+
+    /* Garante que a paleta de cores abre sempre no centro do ecrã e nunca é cortada */
+    .color-palette-popover {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+        z-index: 3500;
+    }
+
+    /* Transforma a lista de secções num menu lateral direito oculto */
+    .lista-partes {
+        position: fixed;
+        top: 0;
+        right: -320px; /* Escondido à direita */
+        width: 280px;
+        height: 100%;
+        background: var(--bg-card) !important;
+        z-index: 3100;
+        box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+        transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 20px;
+        overflow-y: auto;
+        border: none !important;
+        border-left: 1px solid var(--border-clara) !important;
+    }
+    .lista-partes.aberto {
+        right: 0; /* Desliza para dentro do ecrã quando ativado */
+    }
+
+    /* 4. Passo 3: Ordem e Dinâmicas organizadas em 1 coluna */
+    .linha-tempo {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+    .controles-arranjo {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .paleta-botoes {
+        width: 100%;
+    }
+
+    /* 5. Passo 4: Grelha de botões superior e adaptação do contentor do PDF */
+    .painel-header-pdf {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px !important;
+        padding: 15px !important;
+    }
+    .transpositor-container {
+        justify-content: center;
+        width: 100%;
+    }
+    .acoes-finais {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+    .acoes-finais button {
+        width: 100%;
+        margin: 0;
+        padding: 12px;
+        font-size: 13px;
+    }
+    .folha-preview-area {
+        padding: 10px !important;
+        overflow-x: hidden; /* Evita barras de rolagem horizontais com o zoom ativado */
+    }
+}
