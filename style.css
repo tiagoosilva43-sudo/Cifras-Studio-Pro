@@ -1062,7 +1062,7 @@ input:focus, textarea:focus {
 
 /* 2. Distância independente ampliada para SOMENTE ACORDES */
 .so-cifra .acorde { 
-    margin-right: 8px; 
+    margin-right: 5px; 
 }
 
 .so-cifra .bloco-acorde { 
