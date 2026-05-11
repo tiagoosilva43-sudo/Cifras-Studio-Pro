@@ -803,7 +803,7 @@ function imprimirA4() {
                 .acorde { font-weight: bold; font-size: 13px; color: #000; line-height: 1; margin-bottom: 2px; margin-right: 5px; }
                 .letra { font-size: 13px; color: #333; white-space: pre; line-height: 1.1; }
                 .so-cifra .letra { display: none; }
-                .so-cifra .acorde { margin-right: 8px; }
+                .so-cifra .acorde { margin-right: 6px; }
                 .so-cifra .bloco-acorde { margin-right: 0px; }
                 .secao-conteudo.so-cifra { padding-top: 6px; padding-bottom: 0px; display: flex; flex-direction: column; }
             </style>
