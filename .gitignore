@@ -1,0 +1,52 @@
+# Arquivos do Sistema Operacional
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Arquivos de Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Arquivos de Backup
+*.bak
+*.tmp
+*.temp
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependências (se adicionar Node.js no futuro)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Arquivos de Build (se adicionar build no futuro)
+dist/
+build/
+*.min.js
+*.min.css
+
+# Arquivos de Teste
+coverage/
+.nyc_output/
+
+# Arquivos Pessoais
+Projetos/*.json
+*.local
+
+# Arquivos Temporários do Windows
+~$*
