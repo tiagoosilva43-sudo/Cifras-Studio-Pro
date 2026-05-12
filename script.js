@@ -1,7 +1,10 @@
 // ============================================================
 // Cifras Studio — script.js
-// Versão: 2.0
-// Data:   2026-05-11
+// Versão: 2.1
+// Data:   2026-05-12
+// Correções: 
+// - Reconhecimento automático de acordes consecutivos
+// - Cor padrão do seletor agora é a primeira da paleta (#8a0000)
 // ============================================================
 
 "use strict";
@@ -235,6 +238,11 @@ document.addEventListener('click', function(event) {
 
 inicializarGradeCores();
 
+// Inicializa a cor padrão do botão seletor
+if (btnSeletorCores && inputOcultoCor) {
+    btnSeletorCores.style.backgroundColor = inputOcultoCor.value;
+}
+
 // ================= CARREGAMENTO E SALVAMENTO NATIVO (FILE SYSTEM API) =================
 async function carregarProjeto() {
     if (window.showOpenFilePicker) {
@@ -455,6 +463,10 @@ function processarConversao() {
             resultado += lAtual + "\n"; 
         }
     }
+    
+    // CORREÇÃO: Adiciona espaço automático entre acordes consecutivos após conversão
+    resultado = resultado.replace(/\]\[/g, '] [');
+    
     dom.conteudoParte.value = resultado.trim();
     fecharConversor();
 }
@@ -462,11 +474,14 @@ function processarConversao() {
 function adicionarNovaParte() {
     const id = dom.idParte.value.trim();
     const t = dom.tituloParte.value.trim();
-    const c = dom.conteudoParte.value.trim();
+    let c = dom.conteudoParte.value.trim();
     const cor = dom.corParte.value;
     const index = parseInt(dom.editIndex.value, 10);
     
     if (!id || !t || !c) return mostrarToast("Preencha todos os campos da seção!");
+    
+    // CORREÇÃO: Adiciona espaço automático entre acordes consecutivos ao salvar
+    c = c.replace(/\]\[/g, '] [');
     
     if(index === -1) {
         bancoDePartes.push({ id, t, c, cor });
@@ -614,6 +629,10 @@ function renderizarTimeline() {
 
 function compilarCifra(texto) {
     if (!texto) return ''; 
+    
+    // CORREÇÃO: Adiciona espaço automático entre acordes consecutivos [C][G] -> [C] [G]
+    texto = texto.replace(/\]\[/g, '] [');
+    
     let htmlCompilado = '';
     texto.split('\n').forEach(linha => {
         if(!linha.trim()){ 
