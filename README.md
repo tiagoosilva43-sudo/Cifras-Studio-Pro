@@ -34,25 +34,6 @@
 
 ---
 
-## 🚀 Versões Disponíveis
-
-### 📦 Stable (Recomendado)
-Versão estável e testada, ideal para uso em produção.
-- Interface limpa e minimalista
-- Máxima compatibilidade
-- Performance otimizada
-- **[Acessar Stable →](Stable/)**
-
-### 🧪 Testes (Experimental)
-Versão com recursos avançados e design moderno.
-- Design glassmorphism
-- Animações e micro-interações
-- Auto-save e atalhos de teclado
-- Recursos experimentais
-- **[Acessar Testes →](Testes/)**
-
----
-
 ## 🎯 Como Usar
 
 ### 1️⃣ Dados da Música
@@ -87,9 +68,10 @@ Preencha as informações básicas:
 ## 💻 Instalação
 
 ### Opção 1: Download Direto
-1. Baixe os arquivos da pasta `Stable/` ou `Testes/`
-2. Abra o arquivo `index.html` no navegador
-3. Pronto! Não precisa de servidor
+1. Clique em **Code** → **Download ZIP**
+2. Extraia os arquivos
+3. Abra o arquivo `index.html` no navegador
+4. Pronto! Não precisa de servidor
 
 ### Opção 2: Clone o Repositório
 ```bash
@@ -100,14 +82,12 @@ git clone https://github.com/seu-usuario/cifras-studio.git
 cd cifras-studio
 
 # Abra no navegador
-# Stable: abra Stable/index.html
-# Testes: abra Testes/index.html
+# Abra o arquivo index.html
 ```
 
 ### Opção 3: GitHub Pages
 Acesse diretamente online (se configurado):
-- **Stable**: `https://seu-usuario.github.io/cifras-studio/Stable/`
-- **Testes**: `https://seu-usuario.github.io/cifras-studio/Testes/`
+- **Demo ao vivo**: `https://seu-usuario.github.io/cifras-studio/`
 
 ---
 

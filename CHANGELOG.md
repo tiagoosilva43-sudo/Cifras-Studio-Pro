@@ -1,4 +1,4 @@
-# 📝 Cifras Studio - Histórico de Versões (Stable)
+# 📝 Cifras Studio - Histórico de Versões
 
 ## Versão 2.1 (2026-05-12)
 
@@ -42,7 +42,7 @@ texto = texto.replace(/\]\[/g, '] [');
 
 ## Versão 2.0 (2026-05-11)
 
-### ✨ Versão Inicial Stable
+### ✨ Lançamento Inicial
 - Interface limpa e minimalista
 - Sistema completo de criação de cifras em 4 passos
 - Conversor automático de cifras
@@ -128,10 +128,9 @@ Preencha as informações básicas:
 
 ---
 
-## ⌨️ Atalhos de Teclado (Desktop)
+## ⌨️ Atalhos de Teclado
 
-Atualmente não implementados na versão Stable.
-Disponíveis na versão Testes (avançada).
+Atualmente não implementados. Planejado para versões futuras.
 
 ---
 

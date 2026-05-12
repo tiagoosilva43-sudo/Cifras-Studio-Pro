@@ -105,21 +105,13 @@ Documentação clara é essencial! Você pode ajudar:
 
 ```
 cifras-studio/
-├── Stable/              # Versão estável
-│   ├── index.html
-│   ├── script.js
-│   ├── style.css
-│   └── CHANGELOG.md
-├── Testes/              # Versão experimental
-│   ├── index.html
-│   ├── script.js
-│   ├── style.css
-│   └── CHANGELOG.md
-├── Projetos/            # Exemplos de projetos (não versionado)
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-└── CONTRIBUTING.md
+├── index.html           # Página principal
+├── script.js            # Lógica da aplicação
+├── style.css            # Estilos
+├── CHANGELOG.md         # Histórico de versões
+├── README.md            # Documentação
+├── LICENSE              # Licença MIT
+└── CONTRIBUTING.md      # Guia de contribuição
 ```
 
 ### Branches

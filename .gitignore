@@ -44,8 +44,8 @@ build/
 coverage/
 .nyc_output/
 
-# Arquivos Pessoais
-Projetos/*.json
+# Arquivos Pessoais de Projetos
+projetos/
 *.local
 
 # Arquivos Temporários do Windows
