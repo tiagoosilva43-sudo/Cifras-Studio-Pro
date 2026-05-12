@@ -395,32 +395,49 @@ function transporAcorde(acordeCompleto, semitons) {
 }
 
 function transporMusica(semitons) {
-    let tomAtual = dom.inputTom.value.trim();
-    if (tomAtual) {
-        let matchTom = tomAtual.match(/^([A-G][b#]?)(.*)$/);
-        if (matchTom) {
-            dom.inputTom.value = transporNota(matchTom[1], semitons) + matchTom[2];
-        }
+    // Adiciona animação de slide vertical (elementos sobem e descem)
+    if (dom.docContainer) {
+        dom.docContainer.style.transform = 'translateY(30px)';
+        dom.docContainer.style.opacity = '0';
+        dom.docContainer.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     }
+    
+    setTimeout(() => {
+        let tomAtual = dom.inputTom.value.trim();
+        if (tomAtual) {
+            let matchTom = tomAtual.match(/^([A-G][b#]?)(.*)$/);
+            if (matchTom) {
+                dom.inputTom.value = transporNota(matchTom[1], semitons) + matchTom[2];
+            }
+        }
 
-    const displayTom = document.getElementById('displayTomAtual');
-    if (displayTom) displayTom.innerText = "Tom: " + (dom.inputTom.value || "?");
+        const displayTom = document.getElementById('displayTomAtual');
+        if (displayTom) displayTom.innerText = "Tom: " + (dom.inputTom.value || "?");
 
-    const regexBuscaColchetes = /\[(.*?)\]/g;
+        const regexBuscaColchetes = /\[(.*?)\]/g;
 
-    bancoDePartes.forEach(parte => {
-        parte.c = parte.c.replace(regexBuscaColchetes, (matchTotal, conteudoAcorde) => {
-            return "[" + transporAcorde(conteudoAcorde.trim(), semitons) + "]";
+        bancoDePartes.forEach(parte => {
+            parte.c = parte.c.replace(regexBuscaColchetes, (matchTotal, conteudoAcorde) => {
+                return "[" + transporAcorde(conteudoAcorde.trim(), semitons) + "]";
+            });
         });
-    });
 
-    mapaAtual.forEach(inst => {
-        inst.c = inst.c.replace(regexBuscaColchetes, (matchTotal, conteudoAcorde) => {
-            return "[" + transporAcorde(conteudoAcorde.trim(), semitons) + "]";
+        mapaAtual.forEach(inst => {
+            inst.c = inst.c.replace(regexBuscaColchetes, (matchTotal, conteudoAcorde) => {
+                return "[" + transporAcorde(conteudoAcorde.trim(), semitons) + "]";
+            });
         });
-    });
 
-    gerarDocumento();
+        gerarDocumento();
+        
+        // Restaura posição com animação de slide de baixo para cima
+        setTimeout(() => {
+            if (dom.docContainer) {
+                dom.docContainer.style.transform = 'translateY(0)';
+                dom.docContainer.style.opacity = '1';
+            }
+        }, 50);
+    }, 150);
 }
 
 // ================= CONVERSOR DE CIFRAS E GESTÃO DE PARTES =================
@@ -630,8 +647,18 @@ function renderizarTimeline() {
 function compilarCifra(texto) {
     if (!texto) return ''; 
     
-    // CORREÇÃO: Adiciona espaço automático entre acordes consecutivos [C][G] -> [C] [G]
+    // CORREÇÃO 1: Adiciona espaço automático entre acordes consecutivos [C][G] -> [C] [G]
     texto = texto.replace(/\]\[/g, '] [');
+    
+    // CORREÇÃO 2: Detecta palavras cortadas (letra curta SEM espaços ao redor) e adiciona " - "
+    // Só aplica quando: [acorde]letra_curta_SEM_ESPAÇO[acorde]
+    texto = texto.replace(/(\[[^\]]+\])([^\[\s]{1,3})(\[[^\]]+\])/g, function(match, acorde1, letraCurta, acorde2) {
+        // Se já tem hífen, não adiciona outro
+        if (letraCurta.includes('-')) {
+            return match;
+        }
+        return acorde1 + letraCurta + ' - ' + acorde2;
+    });
     
     let htmlCompilado = '';
     texto.split('\n').forEach(linha => {

@@ -2,19 +2,21 @@
 
 Editor profissional de cifras musicais com interface moderna e recursos avançados.
 
-![Versão](https://img.shields.io/badge/versão-2.1-blue)
+![Versão](https://img.shields.io/badge/versão-2.2-blue)
 ![Licença](https://img.shields.io/badge/licença-MIT-green)
 
 ## ✨ Funcionalidades
 
 - Editor de cifras com reconhecimento automático de acordes
+- Correção inteligente de palavras cortadas entre acordes
 - Organização visual com cores personalizadas
-- Transposição de tom automática
-- Exportação para PDF
+- Transposição de tom automática com animação suave
+- Exportação para PDF em formato A4
 - Salvar e carregar projetos
 - Modo escuro automático
 - Conversor de cifras tradicionais
-- Desktop/Mobile
+- Interface drag-and-drop
+- Design profissional com animações fluidas
 
 ## 🚀 Acesso
 
