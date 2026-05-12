@@ -10,11 +10,11 @@ Editor profissional de cifras musicais com interface moderna e recursos avançad
 - Editor de cifras com reconhecimento automático de acordes
 - Organização visual com cores personalizadas
 - Transposição de tom automática
-- Exportação para PDF em formato A4
+- Exportação para PDF
 - Salvar e carregar projetos
 - Modo escuro automático
 - Conversor de cifras tradicionais
-- Interface drag-and-drop
+- Desktop/Mobile
 
 ## 🚀 Acesso
 
