@@ -1,10 +1,11 @@
 // ============================================================
 // Cifras Studio — script.js
-// Versão: 2.1
-// Data:  2026-05-12
+// Versão: 2.3
+// Data:  2026-05-15
 // Correções: 
-// - Reconhecimento automático de acordes consecutivos
-// - Cor padrão do seletor agora é a primeira da paleta (#8a0000)
+// - Suporte para acordes com 7M, 9M (sétima maior, nona maior)
+// - Melhoria na detecção de linhas puras de acordes no conversor
+// - Correção no posicionamento de acordes durante conversão
 // ============================================================
 
 "use strict";
@@ -15,7 +16,7 @@ let mapaAtual = [];
 let mapGroupsGlobais = [];
 let handleArquivoAtual = null; // Reteem a permissão de sobrescrita nativa do arquivo .json
 
-const regexAcordeGlobal = /\b([A-G][b#]?(2|4|5|6|7|9|11|13|maj|min|m|sus|dim|aug)*(\/[A-G][b#]?)?)\b/g;
+const regexAcordeGlobal = /\b([A-G][b#]?(2|4|5|6|7M|9M|7|9|11|13|maj|min|m|sus|dim|aug|add)*(\/[A-G][b#]?)?)\b/g;
 
 // MAPEAMENTO DO DOM
 const dom = {
@@ -460,28 +461,73 @@ function processarConversao() {
     for (let i = 0; i < linhas.length; i++) {
         let lAtual = linhas[i]; 
         let lProx = linhas[i + 1] || "";
+        
+        const textoSemAcordes = lAtual.replace(regexAcordeGlobal, '').trim();
         const matches = lAtual.match(regexAcordeGlobal);
         
-        if (matches && lAtual.replace(regexAcordeGlobal, '').trim().length < lAtual.length / 2) {
-            let linhaFundida = ""; let cursor = 0; let acordes = []; let m;
+        // Verifica se é uma linha PURA de acordes:
+        // - Tem acordes
+        // - O texto restante (sem acordes) tem menos de 10 caracteres OU é só espaços/pontuação
+        const eLinhaPuraDeAcordes = matches && (
+            textoSemAcordes.length < 10 || 
+            /^[\s\-\|\.,:;]*$/.test(textoSemAcordes)
+        );
+        
+        if (eLinhaPuraDeAcordes && lProx.trim()) {
+            // Caso 1: Linha de acordes com letra na linha seguinte
+            let linhaFundida = ""; 
+            let cursor = 0; 
+            let acordes = []; 
+            let m;
+            
+            // Extrai todos os acordes e suas posições
             regexAcordeGlobal.lastIndex = 0;
             while ((m = regexAcordeGlobal.exec(lAtual)) !== null) {
                 acordes.push({ nota: m[0], pos: m.index });
             }
             
+            // Insere os acordes nas posições correspondentes da linha de letra
             acordes.forEach(acc => { 
                 linhaFundida += lProx.substring(cursor, acc.pos) + "[" + acc.nota + "]"; 
                 cursor = acc.pos; 
             });
             linhaFundida += lProx.substring(cursor);
             resultado += linhaFundida + "\n"; 
-            i++; 
+            i++; // Pula a próxima linha pois já foi processada
+        } else if (matches) {
+            // Caso 2: Linha com acordes E letra misturados (ex: "C#m7  D7M  Confiei em Ti")
+            // Converte acordes soltos em [acorde]
+            let linhaConvertida = lAtual;
+            let acordes = [];
+            let m;
+            
+            regexAcordeGlobal.lastIndex = 0;
+            while ((m = regexAcordeGlobal.exec(lAtual)) !== null) {
+                // Verifica se o acorde está isolado (cercado por espaços ou início/fim de linha)
+                const antes = m.index > 0 ? lAtual[m.index - 1] : ' ';
+                const depois = m.index + m[0].length < lAtual.length ? lAtual[m.index + m[0].length] : ' ';
+                
+                if ((antes === ' ' || antes === '\t') && (depois === ' ' || depois === '\t')) {
+                    acordes.push({ nota: m[0], pos: m.index, len: m[0].length });
+                }
+            }
+            
+            // Substitui acordes de trás para frente para não bagunçar os índices
+            for (let j = acordes.length - 1; j >= 0; j--) {
+                const acc = acordes[j];
+                linhaConvertida = linhaConvertida.substring(0, acc.pos) + 
+                                  "[" + acc.nota + "]" + 
+                                  linhaConvertida.substring(acc.pos + acc.len);
+            }
+            
+            resultado += linhaConvertida + "\n";
         } else { 
+            // Caso 3: Linha sem acordes (só letra)
             resultado += lAtual + "\n"; 
         }
     }
     
-    // CORREÇÃO: Adiciona espaço automático entre acordes consecutivos após conversão
+    // Adiciona espaço automático entre acordes consecutivos após conversão
     resultado = resultado.replace(/\]\[/g, '] [');
     
     dom.conteudoParte.value = resultado.trim();
