@@ -175,6 +175,96 @@ function iniciarNovaMusica() {
     }
 }
 
+// ================= SELETOR DE TOM VISUAL =================
+const tonsDoApp = [
+    { nota: 'A', nome: 'A' },
+    { nota: 'Bb', nome: 'Bb' },
+    { nota: 'B', nome: 'B' },
+    { nota: 'C', nome: 'C' },
+    { nota: 'Db', nome: 'Db' },
+    { nota: 'D', nome: 'D' },
+    { nota: 'Eb', nome: 'Eb' },
+    { nota: 'E', nome: 'E' },
+    { nota: 'F', nome: 'F' },
+    { nota: 'F#', nome: 'F#' },
+    { nota: 'G', nome: 'G' },
+    { nota: 'Ab', nome: 'Ab' }
+];
+
+const painelTons = document.getElementById('painelTons');
+const btnSeletorTom = document.getElementById('btnSeletorTom');
+const inputOcultoTom = document.getElementById('inputTom');
+const tomSelecionadoTexto = document.getElementById('tomSelecionadoTexto');
+
+function selecionarTom(tomNota, tomNome) {
+    // Atualiza valores
+    if (inputOcultoTom) inputOcultoTom.value = tomNota;
+    if (tomSelecionadoTexto) tomSelecionadoTexto.textContent = tomNome;
+    
+    // Reinicializa toda a grade para garantir estado limpo
+    inicializarGradeTons();
+    
+    fecharPainelTons();
+}
+
+function inicializarGradeTons() {
+    const grade = document.getElementById('gradeTonsPalette');
+    if (!grade) return;
+    grade.innerHTML = ''; 
+
+    const tomSelecionado = inputOcultoTom.value;
+
+    tonsDoApp.forEach((tom, index) => {
+        const botaoTom = document.createElement('button');
+        botaoTom.type = 'button';
+        
+        // Todos os botões começam iguais - apenas adiciona 'selecionado' se necessário
+        let classes = 'tom-palette-btn';
+        if (tom.nota === tomSelecionado) classes += ' selecionado';
+        
+        botaoTom.className = classes;
+        botaoTom.textContent = tom.nome;
+        botaoTom.title = `Tom ${tom.nome}`;
+        
+        botaoTom.onclick = (e) => {
+            e.stopPropagation(); 
+            selecionarTom(tom.nota, tom.nome);
+        };
+
+        grade.appendChild(botaoTom);
+    });
+}
+
+function togglePainelTons() { 
+    if (painelTons) painelTons.classList.toggle('aberto'); 
+}
+
+function fecharPainelTons() { 
+    if (painelTons) painelTons.classList.remove('aberto'); 
+}
+
+function mudarTomEfetivo(novaTom, nomeExibicao) {
+    // Atualiza os valores
+    if (inputOcultoTom) inputOcultoTom.value = novaTom;
+    if (tomSelecionadoTexto) tomSelecionadoTexto.textContent = nomeExibicao;
+    
+    // A remoção/adição da classe já é feita no onclick do botão
+    // Esta função só atualiza os valores
+}
+
+// Fecha o painel ao clicar fora
+document.addEventListener('click', function(event) {
+    const container = document.querySelector('.tom-picker-container');
+    if (container && !container.contains(event.target)) {
+        fecharPainelTons();
+    }
+});
+
+// Inicializar após o DOM carregar
+document.addEventListener('DOMContentLoaded', function() {
+    inicializarGradeTons();
+});
+
 // ================= SELETOR DE CORES CUSTOMIZADO =================
 const coresDoApp = [
     '#8a0000', '#995c00', '#0a5700', '#007070',
@@ -242,6 +332,45 @@ inicializarGradeCores();
 // Inicializa a cor padrão do botão seletor
 if (btnSeletorCores && inputOcultoCor) {
     btnSeletorCores.style.backgroundColor = inputOcultoCor.value;
+}
+
+// ================= FUNÇÃO PARA GERAR NOME DO ARQUIVO =================
+function gerarNomeArquivo(extensao = '') {
+    const titulo = dom.inputTitulo.value.trim();
+    const tom = dom.inputTom.value.trim();
+    
+    if (!titulo && !tom) {
+        return extensao === '.pdf' ? 'cifra.pdf' : 'cifras.json';
+    }
+    
+    let nomeArquivo = '';
+    
+    if (titulo) {
+        // Converte título para maiúscula
+        nomeArquivo = titulo.toUpperCase();
+    }
+    
+    if (tom) {
+        // Adiciona o tom no formato " - TOM X"
+        const tomFormatado = tom.toUpperCase();
+        if (titulo) {
+            nomeArquivo += ` - TOM ${tomFormatado}`;
+        } else {
+            nomeArquivo = `TOM ${tomFormatado}`;
+        }
+    }
+    
+    // Se não tem título mas tem tom, usa só o tom
+    if (!titulo && tom) {
+        nomeArquivo = `TOM ${tom.toUpperCase()}`;
+    }
+    
+    // Se não tem nem título nem tom, usa nome padrão
+    if (!nomeArquivo) {
+        nomeArquivo = extensao === '.pdf' ? 'cifra' : 'cifras';
+    }
+    
+    return nomeArquivo + extensao;
 }
 
 // ================= CARREGAMENTO E SALVAMENTO NATIVO (FILE SYSTEM API) =================
@@ -327,7 +456,7 @@ async function salvarProjeto() {
         try {
             const handle = await window.showSaveFilePicker({
                 startIn: 'downloads', // Força sugestão nativa na pasta Downloads
-                suggestedName: (projeto.titulo || "cifras") + ".json",
+                suggestedName: gerarNomeArquivo('.json'),
                 types: [{
                     description: 'Arquivo de Projeto JSON',
                     accept: { 'application/json': ['.json'] }
@@ -348,30 +477,24 @@ async function salvarProjeto() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; 
-    a.download = (projeto.titulo || "cifras") + ".json";
+    a.download = gerarNomeArquivo('.json');
     a.click();
     URL.revokeObjectURL(url);
 }
 
 // ================= LÓGICA DE TRANSPOSIÇÃO DE TOM =================
-const ESCALA_SUSTENIDOS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const ESCALA_BEMOIS     = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+// Escala cromática baseada nos tons do seletor visual
+const ESCALA_CROMATICA = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
 
 function transporNota(nota, semitons) {
-    let index = ESCALA_SUSTENIDOS.indexOf(nota);
-    let usaBemol = false;
+    let index = ESCALA_CROMATICA.indexOf(nota);
+    
+    if (index === -1) return nota; // Retorna original se não encontrar
 
-    if (index === -1) {
-        index = ESCALA_BEMOIS.indexOf(nota);
-        usaBemol = true;
-    }
+    let novoIndex = (index + semitons) % ESCALA_CROMATICA.length;
+    if (novoIndex < 0) novoIndex += ESCALA_CROMATICA.length;
 
-    if (index === -1) return nota; 
-
-    let novoIndex = (index + semitons) % 12;
-    if (novoIndex < 0) novoIndex += 12;
-
-    return usaBemol ? ESCALA_BEMOIS[novoIndex] : ESCALA_SUSTENIDOS[novoIndex];
+    return ESCALA_CROMATICA[novoIndex];
 }
 
 function transporAcorde(acordeCompleto, semitons) {
@@ -406,9 +529,14 @@ function transporMusica(semitons) {
     setTimeout(() => {
         let tomAtual = dom.inputTom.value.trim();
         if (tomAtual) {
-            let matchTom = tomAtual.match(/^([A-G][b#]?)(.*)$/);
-            if (matchTom) {
-                dom.inputTom.value = transporNota(matchTom[1], semitons) + matchTom[2];
+            const novoTom = transporNota(tomAtual, semitons);
+            dom.inputTom.value = novoTom;
+            
+            // Atualiza o seletor visual também
+            if (novoTom) {
+                // Usa a função que reinicializa tudo
+                if (tomSelecionadoTexto) tomSelecionadoTexto.textContent = novoTom;
+                inicializarGradeTons();
             }
         }
 
@@ -938,7 +1066,7 @@ async function salvarPdfMobile() {
     const paginas = dom.docContainer.querySelectorAll('.pagina-a4');
     if (!paginas.length) { mostrarToast('Nenhum documento gerado.'); return; }
 
-    mostrarToast('Gerando PDF...');
+    mostrarToast('Gerando PDF com nome formatado...');
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const larguraMM = 210;
@@ -973,18 +1101,22 @@ async function salvarPdfMobile() {
         pdf.addImage(imgData, 'JPEG', 0, 0, larguraMM, alturaMM);
     }
 
-    const nomeArquivo = (dom.inputTitulo.value || 'cifra') + '.pdf';
+    const nomeArquivo = gerarNomeArquivo('.pdf');
     pdf.save(nomeArquivo);
 }
 
 function imprimirA4() {
-    // Mobile: salva como PDF via jsPDF + html2canvas
+    // Mobile: salva direto como PDF via jsPDF + html2canvas
     if (esMobile()) {
         salvarPdfMobile();
         return;
     }
 
-    // Desktop: impressão via iframe
+    // Desktop: impressão via iframe com nome correto
+    // Salva o título original e muda temporariamente para o nome formatado
+    const tituloOriginal = document.title;
+    document.title = gerarNomeArquivo('');
+
     const clone = dom.docContainer.cloneNode(true);
     clone.querySelectorAll('.pagina-a4').forEach(p => {
         p.style.transform = '';
@@ -996,7 +1128,7 @@ function imprimirA4() {
     const htmlCompleto = `<!DOCTYPE html>
 <html>
 <head>
-    <title>Cifra A4</title>
+    <title>${gerarNomeArquivo('')}</title>
     <style>${gerarCssImpressao()}</style>
 </head>
 <body>${conteudoFormatado}</body>
@@ -1018,6 +1150,11 @@ function imprimirA4() {
     setTimeout(() => {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
+        
+        // Restaura o título original após um delay
+        setTimeout(() => {
+            document.title = tituloOriginal;
+        }, 1000);
     }, 300);
 }
 // ================= SISTEMA DE TOAST E TEMA ESCURO =================

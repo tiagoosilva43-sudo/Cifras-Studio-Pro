@@ -70,7 +70,15 @@
                             <input type="text" id="inputAutor" placeholder="Autor / Banda">
                         </div>
                         <div class="linha-inputs mt-4">
-                            <input type="text" id="inputTom" placeholder="Tom (Ex: G)">
+                            <div class="tom-picker-container">
+                                <button type="button" class="tom-picker-trigger" id="btnSeletorTom" onclick="togglePainelTons()">
+                                    <span id="tomSelecionadoTexto">TOM</span>
+                                </button>
+                                <div class="tom-palette-popover" id="painelTons">
+                                    <div class="tom-palette-grid" id="gradeTonsPalette"></div>
+                                </div>
+                                <input type="hidden" id="inputTom" value="">
+                            </div>
                             <input type="text" id="inputBpm" placeholder="BPM (Ex: 120)">
                             <input type="text" id="inputCompasso" placeholder="Compasso (Ex: 4/4)">
                         </div>
